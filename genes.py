@@ -12,19 +12,27 @@ from Bio import Entrez, SeqIO
 from xml.etree import ElementTree
 
 
-def fetch_gene(uid: str) -> SeqIO:
-    with Entrez.efetch(db='gene', id=uid, rettype='gbwithparts', retmode='text') as handle:
+"""
+Retrieves gene using GeneID
+
+:param gid: GeneID to retrieve
+
+:returns: Matching `SeqIO` data
+"""
+def fetch_gene(gid: str) -> SeqIO:
+    with Entrez.efetch(db='gene', id=gid, rettype='gbwithparts', retmode='text') as handle:
         return SeqIO.read(handle, 'gb')
 
 
+
+"""
+Fetch all annotated genes in a genome from GenBank
+
+:param genome: Genomic `SeqIO` of interest (___must___ have annotations, otherwise `ValueError` is thrown.
+
+:return: List `dbxref` data
+"""
 def get_all_genes(genome: SeqIO) -> List['SeqIO']:
-    """
-    Fetch all annotated genes in a genome from GenBank
-
-    :param genome: Annotated genomic `SeqIO` of interest
-
-    :return: List of annotated sequences
-    """
     # raise error if there are no annotations
     if len(genome.features) <= 1:
         raise ValueError('Genome does not have any gene annotations')
@@ -44,14 +52,14 @@ def get_all_genes(genome: SeqIO) -> List['SeqIO']:
     return genes
 
 
+"""
+Get non-essential metadata not found in GenBank files by using defailt ASN.1 specification.
+
+:paramater uid: GeneID
+
+:returns: dict containing `summary` and `title`
+"""
 def get_gene_metadata(uid: str) -> dict[str, str]:
-    """
-    Get non-essential metadata not found in GenBank files by using defailt ASN.1 specification.
-
-    :paramater uid: GeneID
-
-    :returns: dict containing `summary` and `title`
-    """
     with Entrez.efetch(db='gene', id=uid, retmode='xml') as handle:
         parsed = ElementTree.parse(handle)
     root = parsed.getroot()

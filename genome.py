@@ -10,26 +10,29 @@ from xml.etree import ElementTree
 from Bio import SeqIO, Entrez
 
 
+"""
+Find a given gene in genome annotation tree
+
+:param genome: Genomic `SeqIO` object
+
+:param term: name or id of gene to search for in annotation tree
+
+:returns: `SeqIO.features` data for matching value
+"""
 def find_in_genome(genome, term):
-    """
-    Find a given gene in genome
-    :param genome: `SeqIO` object
-    :param term: gene to find
-    :return:
-    """
     for feature in genome.features:
         if 'gene' in feature.qualifiers.keys() and term in feature.qualifiers['gene']:
             return feature
 
 
+"""
+Get RefSeq genomes from NCBI using a given query.
+
+:param organism: search query to find organism on GenBank
+
+:returns: List of `SeqRecord` objects containing reference genomes
+"""
 def get_genome_list(organism: str) -> List['SeqIO']:
-    """
-    Get RefSeq genomes from NCBI using a given query.
-
-    :param organism: search query to find organism on GenBank
-
-    :returns: List of `SeqRecord` objects containing reference genome
-    """
     # TODO: have more expansive and comprehensive query
     query = '"%s"[Organism] AND (Refseq[Filter] AND "bioproject nuccore"[Filter] AND "scope monoisolate"[Filter])' \
             'NOT plasmid[filter]' % organism
@@ -56,21 +59,31 @@ def get_genome_list(organism: str) -> List['SeqIO']:
     return [i for i in genomes if 'plasmid' not in i.description]
 
 
+"""
+Lookup and download genome by `id`.
+
+This returns a list of `SeqIO` in the event that multiple genomes are returned, but they *should* not
+
+:param uid: NCBI id of genome to retrieve
+
+:returns: `SeqIO` corresponding to matching genome
+"""
 def fetch_genome(uid: str) -> SeqIO:
-    with Entrez.efetch(db='nuccore', id=uid, rettype='gb', retmode='text') as handle:
+    with Entrez.efetch(db='nuccore', id=uid, rettype='gbwithparts', retmode='text') as handle:
         return SeqIO.read(handle, 'gb')
 
 
+"""
+Search for genomes using accession number, then retrieve using id.
+
+This returns a list of `SeqIO` in the event that multiple genomes are returned, but they *should* not.
+
+:param accession: Genome search term to use
+
+:returns list of `SeqIO` objects that *should* correspond to given accession number
+"""
 def fetch_genome_by_accession(accession: str) -> List['SeqIO']:
-    """
-    Search for genomes using accession number, then retrieve using id.
 
-    This returns a list of `SeqIO` in the event that multiple genomes are returned, but they *should* not
-
-    :param accession: Genome search term to use
-
-    :returns list of `SeqIO` objects
-    """
     with Entrez.esearch(db='nuccore', term=accession) as handle:
         ids = Entrez.read(handle)['IdList']
 
