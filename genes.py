@@ -1,28 +1,13 @@
 """
 Methods to retrieve and interact with gene data.
 
-Both `fetch_gene` and `get_all_genes` use Entrez to actively download GenBank data onto memory,
-and use the GenBank file format.
-
-Conversely, `get_gene_metadata` uses NCBI's ASN.1 BioSeq specification since more information is stored in this type.
+`get_gene_metadata` uses NCBI's ASN.1 BioSeq specification since GenBank file format
+returns relatively useless data on `gene` db.
 """
 
 from typing import List
 from Bio import Entrez, SeqIO
 from xml.etree import ElementTree
-
-
-"""
-Retrieves gene using GeneID
-
-:param gid: GeneID to retrieve
-
-:returns: Matching `SeqIO` data
-"""
-def fetch_gene(gid: str) -> SeqIO:
-    with Entrez.efetch(db='gene', id=gid, rettype='gbwithparts', retmode='text') as handle:
-        return SeqIO.read(handle, 'gb')
-
 
 
 """
@@ -47,7 +32,7 @@ def get_all_genes(genome: SeqIO) -> List['SeqIO']:
     # fetch all genes
     for gene in genome.features[start:]:
         gid = [i[i.index(':') + 1:] for i in gene.qualifiers['db_xref'] if 'GeneID' in i][0]
-        data = fetch_gene(gid)
+        data = get_gene_metadata(gid)
         genes.append(data)
     return genes
 
