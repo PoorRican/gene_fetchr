@@ -2,41 +2,44 @@
 Methods for retrieving and interacting with whole genome data.
 
 All methods use NCBI Entrez and GenBank file formats.
+For more details on genes or products, refer to `gene.py` or `protein.py`
 """
 
 from typing import List
 from xml.etree import ElementTree
+from warnings import warn
 
-from Bio import SeqIO, Entrez
+from Bio import SeqIO, Entrez, SeqRecord, SeqFeature
 
 
-"""
-Find a given gene in genome annotation tree
+def find_in_genome(genome, term) -> SeqFeature:
+    """
+    Find a given gene in genome annotation tree
 
-:param genome: Genomic `SeqIO` object
+    :param genome: Genomic `SeqRecord`
 
-:param term: name or id of gene to search for in annotation tree
+    :param term: name or id of gene to search for in annotation tree
 
-:returns: `SeqIO.features` data for matching value
-"""
-def find_in_genome(genome, term):
+    :returns: `SeqFeature` data. Contains GeneID and location
+    """
     for feature in genome.features:
         if 'gene' in feature.qualifiers.keys() and term in feature.qualifiers['gene']:
             return feature
 
 
-"""
-Get RefSeq genomes from NCBI using a given query.
+def get_genome_list(organism: str) -> List['SeqRecord']:
+    """
+    Get RefSeq genomes from NCBI using a given query.
 
-:param organism: search query to find organism on GenBank
+    :param organism: search query to find organism on GenBank
 
-:returns: List of `SeqRecord` objects containing reference genomes
-"""
-def get_genome_list(organism: str) -> List['SeqIO']:
+    :returns: List of reference genome `SeqRecord` objects
+    """
+
     # TODO: have more expansive and comprehensive query
     query = '"%s"[Organism] AND (Refseq[Filter] AND "bioproject nuccore"[Filter] AND "scope monoisolate"[Filter])' \
             'NOT plasmid[filter]' % organism
-    with Entrez.esearch(db='bioproject', term=query, retmode='text') as handle:
+    with Entrez.esearch(db='bioproject', term=query, rettype='gb', retmode='text') as handle:
         records = Entrez.read(handle)
 
     accessions = []
@@ -55,39 +58,42 @@ def get_genome_list(organism: str) -> List['SeqIO']:
     for i in ids:
         genomes.append(fetch_genome(i))
 
-    # Exclude any sequence that has "plasmid" in title
-    return [i for i in genomes if 'plasmid' not in i.description]
+    return genomes
 
 
-"""
-Lookup and download genome by `id`.
+def fetch_genome(gid: str) -> SeqRecord:
+    """
+    Lookup and download genome by `gi`.
 
-This returns a list of `SeqIO` in the event that multiple genomes are returned, but they *should* not
+    This returns a list of `SeqIO` in the event that multiple genomes are returned, but they *should* not
 
-:param uid: NCBI id of genome to retrieve
+    :param gid: NCBI id (`gi`) of genome to retrieve. From `Entrez.esearch` or ASN.1 data...
 
-:returns: `SeqIO` corresponding to matching genome
-"""
-def fetch_genome(uid: str) -> SeqIO:
-    with Entrez.efetch(db='nuccore', id=uid, rettype='gbwithparts', retmode='text') as handle:
+    :returns: `SeqIO` corresponding to matching genome
+    """
+    with Entrez.efetch(db='nuccore', id=gid, rettype='gbwithparts', retmode='text') as handle:
         return SeqIO.read(handle, 'gb')
 
 
-"""
-Search for genomes using accession number, then retrieve using id.
+def fetch_genome_by_accession(accession: str) -> SeqRecord:
+    """
+    Search for genomes using accession number, then retrieve using `gi`
 
-This returns a list of `SeqIO` in the event that multiple genomes are returned, but they *should* not.
+    :raises A warning is raised if accession number returned 0 or more than 1 `SeqFeatures`.
+    The first returned `GeneID` is used in the event that more than one record is returned by `esearch`.
 
-:param accession: Genome search term to use
+    :param accession: Genome search term to use
 
-:returns list of `SeqIO` objects that *should* correspond to given accession number
-"""
-def fetch_genome_by_accession(accession: str) -> List['SeqIO']:
+    :returns `SeqRecord` matching accession number
+    """
 
     with Entrez.esearch(db='nuccore', term=accession) as handle:
-        ids = Entrez.read(handle)['IdList']
+        uid = Entrez.read(handle)['IdList']
 
-    genomes = []
-    for i in ids:
-        genomes.append(fetch_genome(i))
-    return genomes
+    if len(uid) == 0:
+        raise ValueError("Invalid genome accession number (%s)")
+    if len(uid) != 1:
+        warn("Genome accession number (%s) returned more than one GeneID value" % accession)
+        return fetch_genome(uid[0])
+    else:
+        return fetch_genome(uid)
