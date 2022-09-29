@@ -1,0 +1,36 @@
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "gene_fetchr"
+version = "v1.0.0"
+authors = [
+  { name="Josue Figueroa", email="poor.rican@pm.me" },
+]
+description = "Search, retrieve, and scrape biological data from annotated genomes or public databases."
+readme = "README.md"
+requires-python = ">=3.7"
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "License :: OSI Approved :: BSD License",
+    "Operating System :: OS Independent",
+    "Development Status :: 3 - Alpha",
+
+    "Intended Audience :: Science/Research",
+    "Topic :: Scientific/Engineering",
+    "Topic :: Scientific/Engineering :: Bio-Informatics",
+    "Topic :: Software Development :: Libraries",
+    "Topic :: Utilities"
+]
+dependencies = [
+    "biopython (>1.79)"
+]
+keywords = [
+    'bioinformatics', 'compulational biology', 'synthetic biology', 'biology',
+    'genetics', 'genomics', 'DIYbio', 'sybio'
+]
+
+[project.urls]
+"Homepage" = "https://github.com/PoorRican/fetchr"
+"Bug Tracker" = "https://github.com/PoorRican/fetchr/issues"

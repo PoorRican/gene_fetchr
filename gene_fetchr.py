@@ -11,3 +11,7 @@ def set_email() -> None:
     """
     with open(FILENAME, 'r') as handle:
         Entrez.email = handle.read()
+
+
+if __name__ == '__main__':
+    set_email()

@@ -1,6 +1,6 @@
 import unittest
 
-from init import *
+from gene_fetchr import set_email
 from genome import *
 
 

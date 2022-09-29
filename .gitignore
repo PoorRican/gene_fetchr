@@ -1,6 +1,34 @@
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Distribution / packaging
+dist/
+*.egg-info
+
+# Installer Logs
+pip-log.txt
+
+# Jupyter Notebook
 .ipynb_checkpoints/
-*.py[aocz]
+
+# Environments
+.env
+.venv
+env/
+venv/
+ENV/
+env.bak/
+venv.bak/
 
 # Entrez files
 email
 uilist.dtd
+
+# User-specific stuff from PyCharm
+.idea/**/workspace.xml
+.idea/**/tasks.xml
+.idea/**/usage.statistics.xml
+.idea/**/dictionaries
+.idea/**/shelf
