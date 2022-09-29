@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "gene_fetchr"
-version = "v1.0.0"
+version = "v1.0.0-beta"
 authors = [
   { name="Josue Figueroa", email="poor.rican@pm.me" },
 ]
