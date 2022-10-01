@@ -1,7 +1,7 @@
 import unittest
 
 from gene_fetchr import set_email
-from genome import *
+from genbank.genome import *
 
 
 set_email()
