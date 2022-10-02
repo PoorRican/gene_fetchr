@@ -30,6 +30,10 @@ class OntologyScraper(object):
         """
         Return GO terms for a given protein.
 
+        First, UniProtKB is queried, getting GO URI's. Then details of those URIs
+        are cross-referenced using QuickGO. This process is very slow, and must be
+        implemented asynchronously.
+
         Args:
             uniprot_id: UniProt id for given product
 
