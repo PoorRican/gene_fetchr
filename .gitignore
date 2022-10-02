@@ -26,6 +26,10 @@ venv.bak/
 email
 uilist.dtd
 
+# Bioservices directories
+cache/*
+*/cache/*
+
 # User-specific stuff from PyCharm
 .idea/**/workspace.xml
 .idea/**/tasks.xml

@@ -8,3 +8,8 @@ offers can be extracted. In future releases, data such as gene ontology can be e
 
 Generated data is flat and unprocessed and can be used to convert to other data formats, has applications for
 computational biology, or be fed to ML algorithms.
+
+# Licensing
+
+This library incorporates some classes and methods from the `bioservices` library, which is licensed under the GPL.
+Therefore, any implementation of this library must remain publicly available.

@@ -1,0 +1,5 @@
+biopython
+uniprot
+jupyter
+bioservices
+tqdm
