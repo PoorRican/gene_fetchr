@@ -1,4 +1,4 @@
-from Bio import SeqFeature, Entrez
+from Bio import SeqFeature, Entrez, SeqRecord, Seq
 from collections import UserDict
 from xml.etree import ElementTree
 from typing import Union, Sized
@@ -27,11 +27,12 @@ def _deconstruct(item: Union[list, set, tuple]) -> Union[object, list, set, tupl
 
 
 class GeneScraper(UserDict):
-    def __init__(self, gene: SeqFeature):
+    def __init__(self, gene: SeqFeature, genome: SeqRecord = None):
         super().__init__()
 
         # store for debugging
         self.gene = gene
+        self.genome = genome
 
         if gene.type == 'gene':
             self.data = self._from_gene(gene)
@@ -55,6 +56,19 @@ class GeneScraper(UserDict):
             return self.data['name']
         elif self.data['type'] == 'mobile_element':
             return self.data['mobile_element_type']
+        else:
+            return "Unknown feature (%d, %d)" % (self.data['start'], self.data['end'])
+
+    @property
+    def sequence(self) -> Seq:
+        """Get nucleotide sequence from parent genome.
+
+        This functionality is deferred to `biopython` for simplicity.
+
+        Returns
+            `Seq` string defined at this gene's location.
+        """
+        return self.gene.extract(self.genome.seq)
 
     @staticmethod
     def _qualifiers(gene: SeqFeature) -> dict:
@@ -76,8 +90,11 @@ class GeneScraper(UserDict):
     @staticmethod
     def _minimal_data(gene: SeqFeature) -> dict:
         """
-        Get generic `location` data and `type`
+        Ensure that minimal data requirements are met.
         """
+        if gene.location is None or gene.type is None or gene.location.strand is None or \
+           gene.location.start is None or gene.location.end is None:
+            raise ValueError('Minimal feature attributes not met')
         data = {
             'strand': gene.location.strand,
             'type': gene.type,
