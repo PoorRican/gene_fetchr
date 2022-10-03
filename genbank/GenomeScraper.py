@@ -1,12 +1,5 @@
-"""
-Methods to retrieve and interact with gene data.
-
-`get_gene_metadata` uses NCBI ASN.1 BioSeq specification since GenBank file format
-returns no metadata in their "gene" db.
-"""
-
 from collections.abc import Generator
-from Bio import SeqRecord, SeqFeature
+from Bio import SeqRecord, SeqFeature, Seq
 from collections import UserDict
 
 from GeneScraper import GeneScraper
@@ -14,7 +7,10 @@ from GeneScraper import GeneScraper
 
 class GenomeScraper(UserDict):
     """
-    Functor that accepts a `SeqRecord` object and aggregates and fetches metadata of all `SeqFeature` objects.
+    Functor that scrapes all useful data on all genes within an annotated genome.
+    Gene data is presented via a dict-like interface.
+
+    A passthrough for underlying `SeqRecord` properties are also provided.
 
     Todo:
         - Separate queries to enable multithreading
@@ -22,10 +18,11 @@ class GenomeScraper(UserDict):
 
     def __init__(self, genome: SeqRecord):
         """
+        Populate instance `data` with features from `genome`.
 
         Args:
             genome: `SeqRecord` of interest
-                `SeqRecord` must have annotations (other than `source`), otherwise
+                `SeqRecord` must have annotations (other than `source`), otherwise `ValueError` is raised.
         """
 
         super().__init__()
@@ -35,6 +32,48 @@ class GenomeScraper(UserDict):
 
         self.genome = genome
         self.scrape()
+
+    @property
+    def topology(self) -> str:
+        return self.genome.annotations['topology']
+
+    @property
+    def molecule_type(self) -> str:
+        return self.genome.annotations['molecule_type']
+
+    @property
+    def organism(self) -> str:
+        return self.genome.annotations['organism']
+
+    @property
+    def comment(self) -> str:
+        return self.genome.annotations['comment']
+
+    @property
+    def id(self) -> str:
+        return self.genome.id
+
+    @property
+    def name(self):
+        return self.genome.name
+
+    @property
+    def sequence(self) -> Seq:
+        return self.genome.seq
+
+    @property
+    def description(self) -> str:
+        return self.genome.description
+
+    def __repr__(self):
+        if self.description:
+            return self.description
+        elif self.id:
+            return self.id
+        elif self.name:
+            return self.name
+        elif self.topology and self.molecule_type:
+            return '%s %s with %d sub-features' % (self.topology, self.molecule_type, len(self.data))
 
     @staticmethod
     def _get_gid(gene: SeqFeature) -> str:
@@ -95,6 +134,6 @@ class GenomeScraper(UserDict):
         Populate `self.data` with `GeneScraper` objects for each feature in genome
         """
         for gene in self.features:
-            data = GeneScraper(gene)
+            data = GeneScraper(gene, self.genome)
             # TODO: update `self.data` instead of overwriting
             self.data[data.id] = data
