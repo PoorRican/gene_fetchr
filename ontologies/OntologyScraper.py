@@ -12,6 +12,9 @@ class OntologyScraper(object):
     fetching is very slow, so any functionality that incorporates returned data should
     be asynchronous.
 
+    References
+        Vocabulary documentation can be found at ``http://geneontology.org/docs/ontology-documentation/``_
+
     Notes
         This class uses `bioservices`, which is licensed under GPL which requires that source code
         be publicly available.
